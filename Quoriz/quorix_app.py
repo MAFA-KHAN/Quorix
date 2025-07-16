@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 import datetime
+from urllib.parse import urlparse, parse_qs
 
-# ------------------ CONFIG & STYLES ------------------
+# ------------------ CONFIG & STYLE ------------------
 st.set_page_config(page_title="Quorix", layout="centered")
 
 st.markdown("""
@@ -32,6 +33,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ------------------ URL MODE CHECK ------------------
+query_params = st.query_params
+is_fill_mode = query_params.get("mode") == "fill"
+
 # ------------------ SESSION INIT ------------------
 if "step" not in st.session_state:
     st.session_state.step = "setup"
@@ -41,7 +46,7 @@ if "step" not in st.session_state:
     st.session_state.answers = []
 
 # ------------------ STEP: SETUP ------------------
-if st.session_state.step == "setup":
+if st.session_state.step == "setup" and not is_fill_mode:
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown('<div class="form-title">🧠 Quorix - Create Your Form</div>', unsafe_allow_html=True)
@@ -56,7 +61,7 @@ if st.session_state.step == "setup":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------ STEP: BUILD ------------------
-elif st.session_state.step == "build":
+elif st.session_state.step == "build" and not is_fill_mode:
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="form-title">{st.session_state.title}</div>', unsafe_allow_html=True)
@@ -73,22 +78,36 @@ elif st.session_state.step == "build":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------ STEP: FILL ------------------
-elif st.session_state.step == "fill":
+if st.session_state.step == "fill" or is_fill_mode:
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
-        st.markdown(f'<div class="form-title">{st.session_state.title}</div>', unsafe_allow_html=True)
+
+        st.markdown(f'<div class="form-title">{st.session_state.title or "Shared Form"}</div>', unsafe_allow_html=True)
         st.markdown('<div class="form-subtitle">Please fill the form below:</div>', unsafe_allow_html=True)
 
+        if is_fill_mode and not st.session_state.questions:
+            st.warning("⚠️ This form link doesn't have any saved questions.")
+            st.stop()
+
+        answers = []
         for i, q in enumerate(st.session_state.questions):
             if q["type"] == "text":
-                st.session_state.answers[i] = st.text_input(q["text"], key=f"ans_text_{i}")
+                ans = st.text_input(q["text"], key=f"fill_text_{i}")
             elif q["type"] == "number":
-                st.session_state.answers[i] = st.number_input(q["text"], key=f"ans_num_{i}")
+                ans = st.number_input(q["text"], key=f"fill_num_{i}")
             elif q["type"] == "yes-no":
-                st.session_state.answers[i] = st.radio(q["text"], ["yes", "no"], key=f"ans_yn_{i}")
+                ans = st.radio(q["text"], ["yes", "no"], key=f"fill_yn_{i}")
+            else:
+                ans = ""
+            answers.append(ans)
 
         if st.button("Submit"):
-            st.session_state.step = "summary"
+            if is_fill_mode:
+                st.success("✅ Your response has been submitted!")
+                st.write("Thanks for your submission.")
+            else:
+                st.session_state.answers = answers
+                st.session_state.step = "summary"
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -132,7 +151,5 @@ elif st.session_state.step == "summary":
             st.session_state.title = ""
             st.session_state.questions = []
             st.session_state.answers = []
-            st.session_state.num_questions = 1
 
         st.markdown('</div>', unsafe_allow_html=True)
-
