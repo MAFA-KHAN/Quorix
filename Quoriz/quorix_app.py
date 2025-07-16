@@ -9,7 +9,6 @@ st.set_page_config(page_title="Quorix", layout="centered")
 
 st.markdown("""
     <style>
-    body { background-color: #f5f5f5; }
     .form-card {
         background: white;
         padding: 25px;
@@ -29,116 +28,120 @@ st.markdown("""
         margin-bottom: 20px;
     }
     @media screen and (max-width: 768px) {
-        .form-card {
-            padding: 15px;
-        }
-        .form-title {
-            font-size: 1.5rem;
-        }
+        .form-card { padding: 15px; }
+        .form-title { font-size: 1.5rem; }
     }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------
-# STATE INIT
+# INIT STATE
 # -----------------------------------
-if "phase" not in st.session_state:
-    st.session_state.phase = "setup"
-    st.session_state.questions = []
+if "step" not in st.session_state:
+    st.session_state.step = "setup"
     st.session_state.title = ""
-    st.session_state.responses = []
+    st.session_state.questions = []
+    st.session_state.answers = []
 
 # -----------------------------------
-# SETUP PHASE
+# STEP 1 – SETUP
 # -----------------------------------
-if st.session_state.phase == "setup":
+if st.session_state.step == "setup":
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown('<div class="form-title">🧠 Quorix - Create Your Form</div>', unsafe_allow_html=True)
-        st.session_state.title = st.text_input("Form Title")
-        num = st.number_input("How many questions?", min_value=1, max_value=10, step=1)
-
-        if st.button("Next"):
-            st.session_state.questions = [{"text": "", "type": "text", "answer": None} for _ in range(num)]
-            st.session_state.phase = "build"
-            st.experimental_rerun()
+        st.session_state.title = st.text_input("Enter form title")
+        num_questions = st.number_input("How many questions?", min_value=1, max_value=10, step=1)
+        proceed = st.button("Next")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    if proceed and st.session_state.title:
+        st.session_state.questions = [{"text": "", "type": "text"} for _ in range(num_questions)]
+        st.session_state.step = "build"
+        st.experimental_rerun()
+
 # -----------------------------------
-# BUILD PHASE
+# STEP 2 – BUILD FORM
 # -----------------------------------
-elif st.session_state.phase == "build":
+elif st.session_state.step == "build":
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="form-title">{st.session_state.title}</div>', unsafe_allow_html=True)
-        st.markdown('<div class="form-subtitle">Enter your questions and types:</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-subtitle">Define each question and type:</div>', unsafe_allow_html=True)
 
         for i, q in enumerate(st.session_state.questions):
             q["text"] = st.text_input(f"Q{i+1}", key=f"qtext_{i}")
             q["type"] = st.selectbox("Type", ["text", "number", "yes-no"], key=f"qtype_{i}")
 
         if st.button("Start Form"):
-            st.session_state.phase = "fill"
+            st.session_state.step = "fill"
+            st.session_state.answers = [None] * len(st.session_state.questions)
             st.experimental_rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------
-# FILL PHASE
+# STEP 3 – FILL FORM
 # -----------------------------------
-elif st.session_state.phase == "fill":
+elif st.session_state.step == "fill":
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="form-title">{st.session_state.title}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-subtitle">Answer the form below:</div>', unsafe_allow_html=True)
 
         for i, q in enumerate(st.session_state.questions):
             if q["type"] == "text":
-                q["answer"] = st.text_input(q["text"], key=f"ans_text_{i}")
+                st.session_state.answers[i] = st.text_input(q["text"], key=f"ans_text_{i}")
             elif q["type"] == "number":
-                q["answer"] = st.number_input(q["text"], key=f"ans_num_{i}")
+                st.session_state.answers[i] = st.number_input(q["text"], key=f"ans_num_{i}")
             elif q["type"] == "yes-no":
-                q["answer"] = st.radio(q["text"], ["yes", "no"], key=f"ans_yn_{i}")
+                st.session_state.answers[i] = st.radio(q["text"], ["yes", "no"], key=f"ans_yn_{i}")
 
         if st.button("Submit"):
-            st.session_state.phase = "summary"
+            st.session_state.step = "summary"
             st.experimental_rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------
-# SUMMARY PHASE
+# STEP 4 – SUMMARY & EXPORT
 # -----------------------------------
-elif st.session_state.phase == "summary":
+elif st.session_state.step == "summary":
     with st.container():
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="form-title">📊 Summary: {st.session_state.title}</div>', unsafe_allow_html=True)
 
         data = []
         for i, q in enumerate(st.session_state.questions):
-            st.write(f"**{i+1}. {q['text']}** → {q['answer']} ({q['type']})")
-            data.append({"Question": q["text"], "Type": q["type"], "Answer": q["answer"]})
+            st.write(f"**{i+1}. {q['text']}** → {st.session_state.answers[i]} ({q['type']})")
+            data.append({
+                "Question": q["text"],
+                "Type": q["type"],
+                "Answer": st.session_state.answers[i]
+            })
 
         df = pd.DataFrame(data)
 
         st.download_button(
-            label="⬇️ Download as CSV",
-            data=df.to_csv(index=False).encode("utf-8"),
-            file_name=f"quorix_response_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            "⬇️ Download CSV",
+            data=df.to_csv(index=False).encode(),
+            file_name=f"quorix_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv"
         )
 
-        text_export = f"Form Title: {st.session_state.title}\n\n"
+        txt = f"Form: {st.session_state.title}\n\n"
         for i, q in enumerate(st.session_state.questions):
-            text_export += f"{i+1}. {q['text']} → {q['answer']} ({q['type']})\n"
+            txt += f"{i+1}. {q['text']} → {st.session_state.answers[i]} ({q['type']})\n"
 
         st.download_button(
-            label="📝 Download as TXT",
-            data=text_export,
-            file_name=f"quorix_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            "📝 Download TXT",
+            data=txt,
+            file_name=f"quorix_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
             mime="text/plain"
         )
 
-        if st.button("🌀 Create New Form"):
-            st.session_state.phase = "setup"
-            st.session_state.questions = []
+        if st.button("🌀 Create Another Form"):
+            st.session_state.step = "setup"
             st.session_state.title = ""
+            st.session_state.questions = []
+            st.session_state.answers = []
             st.experimental_rerun()
         st.markdown('</div>', unsafe_allow_html=True)
