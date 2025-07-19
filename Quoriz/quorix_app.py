@@ -38,13 +38,13 @@ def save_feedback():
 # Navigation Buttons
 # -------------------------------
 st.sidebar.title("MIND.LOCK")
-if st.sidebar.button("🏠 Home"):
+if st.sidebar.button(" Home"):
     st.session_state.current_page = "Home"
-if st.sidebar.button("🧠 Explore"):
+if st.sidebar.button("Explore"):
     st.session_state.current_page = "Explore"
-if st.sidebar.button("📖 About"):
+if st.sidebar.button("About"):
     st.session_state.current_page = "About"
-if st.sidebar.button("💬 Feedback"):
+if st.sidebar.button("Feedback"):
     st.session_state.current_page = "Feedback"
 
 # -------------------------------
@@ -96,7 +96,7 @@ if st.session_state.current_page == "Explore":
 # ABOUT PAGE
 # -------------------------------
 if st.session_state.current_page == "About":
-    st.title("🧬 About MIND.LOCK")
+    st.title(" About MIND.LOCK")
     st.markdown("""
     MIND.LOCK is a psychological maze of levels designed to test the depths of your mind.
 
@@ -110,7 +110,7 @@ if st.session_state.current_page == "About":
 # FEEDBACK PAGE
 # -------------------------------
 if st.session_state.current_page == "Feedback":
-    st.title("💬 Feedback Vault")
+    st.title("Feedback Vault")
     with st.form("feedback_form"):
         name = st.text_input("Your Codename")
         comment = st.text_area("Drop your thoughts...")
@@ -118,9 +118,9 @@ if st.session_state.current_page == "Feedback":
         if submitted and name and comment:
             st.session_state.feedback.append({"name": name, "comment": comment})
             save_feedback()
-            st.success("🧨 Feedback received. Your mind is noted.")
+            st.success(" Feedback received. Your mind is noted.")
     st.divider()
-    st.subheader("📜 Previous Feedback")
+    st.subheader("Previous Feedback")
     for fb in load_feedback():
         st.markdown(f"**{fb['name']}**: {fb['comment']}")
     footer()
@@ -143,7 +143,7 @@ if st.session_state.current_page.startswith("Level"):
         try:
             user_values = list(map(int, user_seq.strip().split()))
             if user_values == st.session_state.sequence:
-                st.success("🧠 Correct! Proceeding to next level...")
+                st.success("Correct! Proceeding to next level...")
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
                 st.session_state.sequence = None
                 st.session_state.current_page = "Explore"
