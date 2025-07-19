@@ -19,6 +19,10 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = []
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
+if "sequence" not in st.session_state:
+    st.session_state.sequence = None
+if "current_level" not in st.session_state:
+    st.session_state.current_level = None
 
 # -------------------------------
 # Save Feedback to File
@@ -58,32 +62,33 @@ if page == "Home":
         <div style='text-align:center; margin-top:100px;'>
             <h1 style='color:#e63946; font-family:monospace;'>MIND.LOCK</h1>
             <h3 style='color:#fff; font-style:italic;'>Unlock the psyche. Or be trapped within.</h3>
-            <form action="/?nav=Explore" method="get">
-                <button style='margin-top:50px; font-size:20px; padding:10px 30px; background:#e63946; color:white; border:none; border-radius:8px; cursor:pointer;'>Let's Play Game</button>
-            </form>
         </div>
     """, unsafe_allow_html=True)
+
+    if st.button("Let's Play Game", key="start_button"):
+        st.session_state.current_page = "Explore"
+        st.experimental_rerun()
     footer()
 
 # -------------------------------
 # EXPLORE PAGE
 # -------------------------------
-el = st.empty()
-el.title("🧠 Levels")
-for i in range(1, 6):
-    col1, col2 = st.columns([0.85, 0.15])
-    if st.session_state.level_unlocked >= i:
-        with col1:
-            st.markdown(f"### 🔓 Level {i}")
-        with col2:
-            if st.button(f"Enter {i}"):
-                st.session_state.current_level = i
-                st.session_state.current_page = f"Level{i}"
-                st.rerun()
-    else:
-        with col1:
-            st.markdown(f"### 🔒 Level {i} (Locked)")
-footer()
+if page == "Explore":
+    st.title("🧠 Levels")
+    for i in range(1, 6):
+        col1, col2 = st.columns([0.85, 0.15])
+        if st.session_state.level_unlocked >= i:
+            with col1:
+                st.markdown(f"### 🔓 Level {i}")
+            with col2:
+                if st.button(f"Enter {i}", key=f"enter_{i}"):
+                    st.session_state.current_level = i
+                    st.session_state.current_page = f"Level{i}"
+                    st.experimental_rerun()
+        else:
+            with col1:
+                st.markdown(f"### 🔒 Level {i} (Locked)")
+    footer()
 
 # -------------------------------
 # ABOUT PAGE
@@ -125,9 +130,8 @@ if st.session_state.current_page.startswith("Level"):
     level = st.session_state.get("current_level", 1)
     st.title(f"🧩 Level {level}: Memory Cage")
 
-    if "sequence" not in st.session_state:
+    if st.session_state.sequence is None:
         st.session_state.sequence = [random.randint(10, 99) for _ in range(3)]
-        st.session_state.user_input = ""
 
     st.markdown("Memorize this sequence:")
     st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state.sequence)]))
@@ -140,7 +144,8 @@ if st.session_state.current_page.startswith("Level"):
                 st.success("🧠 Correct! Proceeding to next level...")
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
                 st.session_state.sequence = None
-                st.rerun()
+                st.session_state.current_page = "Explore"
+                st.experimental_rerun()
             else:
                 st.error("❌ Wrong sequence. Try again.")
         except:
