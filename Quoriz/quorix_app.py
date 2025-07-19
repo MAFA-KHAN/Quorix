@@ -19,6 +19,10 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = []
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
+if "current_level" not in st.session_state:
+    st.session_state.current_level = 1
+if "sequence" not in st.session_state:
+    st.session_state.sequence = None
 
 # -------------------------------
 # Save Feedback to File
@@ -35,21 +39,20 @@ def save_feedback():
         json.dump(st.session_state.feedback, f)
 
 # -------------------------------
-# Navigation Buttons
+# Sidebar Navigation
 # -------------------------------
-st.sidebar.title("MIND.LOCK")
-if st.sidebar.button("🏠 Home"):
+st.sidebar.title("🕶 MIND.LOCK NAV")
+
+nav = st.sidebar.radio("Navigate", ["🏠 Home", "🧠 Explore", "📖 About", "💬 Feedback"], label_visibility="collapsed")
+
+if nav == "🏠 Home":
     st.session_state.current_page = "Home"
-    st.experimental_rerun()
-if st.sidebar.button("🧠 Explore"):
+elif nav == "🧠 Explore":
     st.session_state.current_page = "Explore"
-    st.experimental_rerun()
-if st.sidebar.button("📖 About"):
+elif nav == "📖 About":
     st.session_state.current_page = "About"
-    st.experimental_rerun()
-if st.sidebar.button("💬 Feedback"):
+elif nav == "💬 Feedback":
     st.session_state.current_page = "Feedback"
-    st.experimental_rerun()
 
 # -------------------------------
 # Footer
@@ -72,24 +75,15 @@ if st.session_state.current_page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-        <div style='display:flex; justify-content:center; margin-top:30px;'>
-            <form action="#" method="post">
-                <button style='font-size:18px; padding:10px 25px; background:#e63946; color:white; border:none; border-radius:5px; cursor:pointer;' name="lets_play">Let's Play Game</button>
-            </form>
-        </div>
-    """, unsafe_allow_html=True)
-
     if st.button("Let's Play Game"):
         st.session_state.current_page = "Explore"
-        st.experimental_rerun()
 
     footer()
 
 # -------------------------------
 # EXPLORE PAGE
 # -------------------------------
-if st.session_state.current_page == "Explore":
+elif st.session_state.current_page == "Explore":
     st.title("🧠 Levels")
     for i in range(1, 6):
         col1, col2 = st.columns([0.85, 0.15])
@@ -100,7 +94,6 @@ if st.session_state.current_page == "Explore":
                 if st.button(f"Enter {i}", key=f"enter_{i}"):
                     st.session_state.current_level = i
                     st.session_state.current_page = f"Level{i}"
-                    st.experimental_rerun()
         else:
             with col1:
                 st.markdown(f"### 🔒 Level {i} (Locked)")
@@ -109,8 +102,8 @@ if st.session_state.current_page == "Explore":
 # -------------------------------
 # ABOUT PAGE
 # -------------------------------
-if st.session_state.current_page == "About":
-    st.title("🧬 About MIND.LOCK")
+elif st.session_state.current_page == "About":
+    st.title("📖 About MIND.LOCK")
     st.markdown("""
     MIND.LOCK is a psychological maze of levels designed to test the depths of your mind.
 
@@ -123,7 +116,7 @@ if st.session_state.current_page == "About":
 # -------------------------------
 # FEEDBACK PAGE
 # -------------------------------
-if st.session_state.current_page == "Feedback":
+elif st.session_state.current_page == "Feedback":
     st.title("💬 Feedback Vault")
     with st.form("feedback_form"):
         name = st.text_input("Your Codename")
@@ -142,13 +135,12 @@ if st.session_state.current_page == "Feedback":
 # -------------------------------
 # LEVEL 1: MEMORY CAGE
 # -------------------------------
-if st.session_state.current_page.startswith("Level"):
-    level = st.session_state.get("current_level", 1)
+elif st.session_state.current_page.startswith("Level"):
+    level = st.session_state.current_level
     st.title(f"🧩 Level {level}: Memory Cage")
 
-    if "sequence" not in st.session_state:
+    if st.session_state.sequence is None:
         st.session_state.sequence = [random.randint(10, 99) for _ in range(3)]
-        st.session_state.user_input = ""
 
     st.markdown("Memorize this sequence:")
     st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state.sequence)]))
@@ -162,7 +154,6 @@ if st.session_state.current_page.startswith("Level"):
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
                 st.session_state.sequence = None
                 st.session_state.current_page = "Explore"
-                st.experimental_rerun()
             else:
                 st.error("❌ Wrong sequence. Try again.")
         except:
