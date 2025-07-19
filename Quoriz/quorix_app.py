@@ -35,10 +35,21 @@ def save_feedback():
         json.dump(st.session_state.feedback, f)
 
 # -------------------------------
-# Sidebar Navigation
+# Navigation Buttons
 # -------------------------------
-page = st.sidebar.radio("", ["Home", "Explore", "About", "Feedback"], label_visibility="collapsed")
-st.session_state.current_page = page
+st.sidebar.title("MIND.LOCK")
+if st.sidebar.button("🏠 Home"):
+    st.session_state.current_page = "Home"
+    st.experimental_rerun()
+if st.sidebar.button("🧠 Explore"):
+    st.session_state.current_page = "Explore"
+    st.experimental_rerun()
+if st.sidebar.button("📖 About"):
+    st.session_state.current_page = "About"
+    st.experimental_rerun()
+if st.sidebar.button("💬 Feedback"):
+    st.session_state.current_page = "Feedback"
+    st.experimental_rerun()
 
 # -------------------------------
 # Footer
@@ -53,7 +64,7 @@ def footer():
 # -------------------------------
 # HOME PAGE
 # -------------------------------
-if page == "Home":
+if st.session_state.current_page == "Home":
     st.markdown("""
         <div style='text-align:center; margin-top:100px;'>
             <h1 style='color:#e63946; font-family:monospace;'>MIND.LOCK</h1>
@@ -61,16 +72,24 @@ if page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    if st.button("Let's Play Game", key="play", help="Click to begin exploring the mind"):
+    st.markdown("""
+        <div style='display:flex; justify-content:center; margin-top:30px;'>
+            <form action="#" method="post">
+                <button style='font-size:18px; padding:10px 25px; background:#e63946; color:white; border:none; border-radius:5px; cursor:pointer;' name="lets_play">Let's Play Game</button>
+            </form>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("Let's Play Game"):
         st.session_state.current_page = "Explore"
-        st.rerun()
+        st.experimental_rerun()
 
     footer()
 
 # -------------------------------
 # EXPLORE PAGE
 # -------------------------------
-if page == "Explore":
+if st.session_state.current_page == "Explore":
     st.title("🧠 Levels")
     for i in range(1, 6):
         col1, col2 = st.columns([0.85, 0.15])
@@ -81,7 +100,7 @@ if page == "Explore":
                 if st.button(f"Enter {i}", key=f"enter_{i}"):
                     st.session_state.current_level = i
                     st.session_state.current_page = f"Level{i}"
-                    st.rerun()
+                    st.experimental_rerun()
         else:
             with col1:
                 st.markdown(f"### 🔒 Level {i} (Locked)")
@@ -90,7 +109,7 @@ if page == "Explore":
 # -------------------------------
 # ABOUT PAGE
 # -------------------------------
-if page == "About":
+if st.session_state.current_page == "About":
     st.title("🧬 About MIND.LOCK")
     st.markdown("""
     MIND.LOCK is a psychological maze of levels designed to test the depths of your mind.
@@ -104,7 +123,7 @@ if page == "About":
 # -------------------------------
 # FEEDBACK PAGE
 # -------------------------------
-if page == "Feedback":
+if st.session_state.current_page == "Feedback":
     st.title("💬 Feedback Vault")
     with st.form("feedback_form"):
         name = st.text_input("Your Codename")
@@ -142,7 +161,8 @@ if st.session_state.current_page.startswith("Level"):
                 st.success("🧠 Correct! Proceeding to next level...")
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
                 st.session_state.sequence = None
-                st.rerun()
+                st.session_state.current_page = "Explore"
+                st.experimental_rerun()
             else:
                 st.error("❌ Wrong sequence. Try again.")
         except:
