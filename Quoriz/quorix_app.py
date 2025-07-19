@@ -19,15 +19,12 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = []
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
-if "current_level" not in st.session_state:
-    st.session_state.current_level = 1
-if "sequence" not in st.session_state:
-    st.session_state.sequence = None
 
 # -------------------------------
-# Save Feedback to File
+# Feedback Save/Load
 # -------------------------------
 FEEDBACK_FILE = "feedback.json"
+
 def load_feedback():
     if os.path.exists(FEEDBACK_FILE):
         with open(FEEDBACK_FILE, "r") as f:
@@ -41,17 +38,14 @@ def save_feedback():
 # -------------------------------
 # Sidebar Navigation
 # -------------------------------
-st.sidebar.title("🕶 MIND.LOCK NAV")
-
-nav = st.sidebar.radio("Navigate", ["🏠 Home", "🧠 Explore", "📖 About", "💬 Feedback"], label_visibility="collapsed")
-
-if nav == "🏠 Home":
+st.sidebar.title("🧠 MIND.LOCK")
+if st.sidebar.button("🏠 Home"):
     st.session_state.current_page = "Home"
-elif nav == "🧠 Explore":
+if st.sidebar.button("🧩 Explore"):
     st.session_state.current_page = "Explore"
-elif nav == "📖 About":
+if st.sidebar.button("📖 About"):
     st.session_state.current_page = "About"
-elif nav == "💬 Feedback":
+if st.sidebar.button("💬 Feedback"):
     st.session_state.current_page = "Feedback"
 
 # -------------------------------
@@ -75,15 +69,18 @@ if st.session_state.current_page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    if st.button("Let's Play Game"):
-        st.session_state.current_page = "Explore"
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([2,1,2])
+    with col2:
+        if st.button("Let's Play Game"):
+            st.session_state.current_page = "Explore"
 
     footer()
 
 # -------------------------------
 # EXPLORE PAGE
 # -------------------------------
-elif st.session_state.current_page == "Explore":
+if st.session_state.current_page == "Explore":
     st.title("🧠 Levels")
     for i in range(1, 6):
         col1, col2 = st.columns([0.85, 0.15])
@@ -102,7 +99,7 @@ elif st.session_state.current_page == "Explore":
 # -------------------------------
 # ABOUT PAGE
 # -------------------------------
-elif st.session_state.current_page == "About":
+if st.session_state.current_page == "About":
     st.title("📖 About MIND.LOCK")
     st.markdown("""
     MIND.LOCK is a psychological maze of levels designed to test the depths of your mind.
@@ -116,7 +113,7 @@ elif st.session_state.current_page == "About":
 # -------------------------------
 # FEEDBACK PAGE
 # -------------------------------
-elif st.session_state.current_page == "Feedback":
+if st.session_state.current_page == "Feedback":
     st.title("💬 Feedback Vault")
     with st.form("feedback_form"):
         name = st.text_input("Your Codename")
@@ -133,14 +130,15 @@ elif st.session_state.current_page == "Feedback":
     footer()
 
 # -------------------------------
-# LEVEL 1: MEMORY CAGE
+# LEVEL PAGES
 # -------------------------------
-elif st.session_state.current_page.startswith("Level"):
-    level = st.session_state.current_level
+if st.session_state.current_page.startswith("Level"):
+    level = st.session_state.get("current_level", 1)
     st.title(f"🧩 Level {level}: Memory Cage")
 
-    if st.session_state.sequence is None:
+    if "sequence" not in st.session_state:
         st.session_state.sequence = [random.randint(10, 99) for _ in range(3)]
+        st.session_state.user_input = ""
 
     st.markdown("Memorize this sequence:")
     st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state.sequence)]))
@@ -153,9 +151,27 @@ elif st.session_state.current_page.startswith("Level"):
                 st.success("🧠 Correct! Proceeding to next level...")
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
                 st.session_state.sequence = None
-                st.session_state.current_page = "Explore"
+                if level == 5:
+                    st.session_state.current_page = "Summary"
+                else:
+                    st.session_state.current_page = "Explore"
             else:
                 st.error("❌ Wrong sequence. Try again.")
         except:
             st.error("❌ Invalid input. Please enter numbers only.")
+    footer()
+
+# -------------------------------
+# PERSONALITY SUMMARY
+# -------------------------------
+if st.session_state.current_page == "Summary":
+    st.title("🎴 Final Mind Summary")
+    st.markdown("""
+        <div style='border: 2px dashed #e63946; padding: 20px; border-radius: 10px; background: #111;'>
+            <h2 style='color:#e63946;'>🧠 Analysis Complete</h2>
+            <p style='color:white;'>You’ve crossed the final barrier of your mind.</p>
+            <p style='color:white;'>Your memory is sharp. Your logic is precise. And your persistence unmatched.</p>
+            <p style='color:white;'><i>You are: <b>The Mindbreaker</b></i></p>
+        </div>
+    """, unsafe_allow_html=True)
     footer()
