@@ -187,4 +187,3 @@ if st.session_state.current_page == "Summary":
     st.balloons()
     st.success("You survived the mind trap.")
     footer()
-)
