@@ -1,187 +1,187 @@
-import streamlit as st
-import time
-import random
+# mindlock_app.py
 
-# ---------------------------
+import streamlit as st
+import random
+import time
+
+# ------------------
 # PAGE CONFIG
-# ---------------------------
+# ------------------
 st.set_page_config(
     page_title="MIND.LOCK",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# ---------------------------
+# ------------------
 # CUSTOM CSS
-# ---------------------------
+# ------------------
 st.markdown("""
-<style>
-body {
-    background-color: #000000;
-    color: #ffffff;
-}
-header, footer {visibility: hidden;}
-.css-1v0mbdj {padding-top: 3rem;}
-.main {
-    background-color: #000;
-    color: #fff;
-    font-family: 'Courier New', monospace;
-}
-h1, h2, h3 {
-    color: #e63946;
-    text-align: center;
-}
-.stButton>button {
-    background-color: #e63946;
-    color: white;
-    font-weight: bold;
-    border-radius: 5px;
-    border: none;
-}
-</style>
+    <style>
+        body {
+            background-color: black;
+        }
+        .main {
+            background-color: black;
+            color: red;
+        }
+        h1, h2, h3, h4, h5, h6, .stText, .stButton > button {
+            color: red;
+        }
+        footer {
+            text-align: center;
+            color: #888;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9em;
+            color: #ff0000;
+        }
+        .center-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# HEADER
-# ---------------------------
-st.markdown("### @ 2O25MIND.LOCK | POWERED BY MAFA")
-st.markdown("# 🧠 MIND.LOCK")
-st.markdown("### _A Psychological Terminal Game to Break Your Thinking._")
+# ------------------
+# SIDEBAR NAV
+# ------------------
+menu = st.sidebar.radio("Navigate", ["Home", "Explore", "About", "Feedback"])
 
-# ---------------------------
-# SESSION STATE
-# ---------------------------
-if 'level' not in st.session_state:
-    st.session_state.level = 1
-if 'started' not in st.session_state:
-    st.session_state.started = False
+# ------------------
+# PAGE: HOME
+# ------------------
+if menu == "Home":
+    st.markdown("<h1 style='text-align: center;'>MIND.LOCK</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>Unlock the truth of your subconscious</h4>", unsafe_allow_html=True)
+    
+    st.markdown("""
+        <div class="center-button">
+            <form action="#game">
+                <button style="background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none;">Let's Play Game</button>
+            </form>
+        </div>
+    """, unsafe_allow_html=True)
 
-# ---------------------------
-# LEVELS
-# ---------------------------
-def level_1():
-    st.subheader("LEVEL 1 — SYSTEM BOOT")
-    if st.button("Initiate System"):
-        st.session_state.level += 1
+# ------------------
+# PAGE: EXPLORE
+# ------------------
+elif menu == "Explore":
+    st.title("🧠 Psychological Levels in MIND.LOCK")
+    levels = [
+        ("Boot Test", "Your mind boots... but does it obey?"),
+        ("Memory Cage", "Repeat the unseen, recall under pressure."),
+        ("The Loop", "Break the pattern, or live in it."),
+        ("The Mirror", "Do your choices reflect your truth?"),
+        ("Impulse Hit", "React before you think — or fail."),
+        ("The Philosophical Kill", "One wrong belief, and it ends."),
+        ("Your Core", "Final trial — are you real, or code?")
+    ]
+    for title, desc in levels:
+        st.subheader(f"🔻 {title}")
+        st.markdown(f"*{desc}*")
 
-def level_2():
-    st.subheader("LEVEL 2 — MEMORY TEST")
-    st.write("REMEMBER THIS: **OBSIDIAN**")
-    time.sleep(2)
-    st.session_state.level += 1
+# ------------------
+# PAGE: ABOUT
+# ------------------
+elif menu == "About":
+    st.title("👁️ About MIND.LOCK")
+    st.markdown("""
+    **MIND.LOCK** is a Gen Z anime-inspired psychological test in the form of a dark web simulation.
+    It dives deep into your subconscious through levels that simulate pressure, deception, memory traps, and belief illusions.
 
-def level_3():
-    st.subheader("LEVEL 3 — DISTRACTION")
-    st.text_input("What is 9 x 3?", key="q1")
-    st.radio("Choose a color:", ["Red", "Blue"], key="q2")
-    word = st.text_input("What was the first word?")
-    if word:
-        if word.strip().upper() == "OBSIDIAN":
-            st.success("🧠 MEMORY INTACT.")
-        else:
-            st.error("🪫 MEMORY CORRUPTED.")
-        st.session_state.level += 1
+    Built using beginner Python logic, it's not just a game — it's a statement.
+    """)
 
-def level_4():
-    st.subheader("LEVEL 4 — THE LOOP")
-    ans = st.text_input("How do you escape a loop?")
+# ------------------
+# PAGE: FEEDBACK
+# ------------------
+elif menu == "Feedback":
+    st.title("📨 Feedback")
+    name = st.text_input("Your Name")
+    thoughts = st.text_area("What did you think of MIND.LOCK?")
+    if st.button("Submit"):
+        st.success("Feedback submitted. Thank you for playing with your mind.")
+
+# ------------------
+# GAME PAGE SECTION
+# ------------------
+st.markdown("""
+    <div id="game">
+""", unsafe_allow_html=True)
+
+def glitch_text(text):
+    st.markdown(f"<h3 style='color:red;'>{text}</h3>", unsafe_allow_html=True)
+    time.sleep(1)
+
+def memory_level():
+    sequence = [random.randint(10, 99) for _ in range(3)]
+    st.write("Memorize this sequence:", sequence)
+    time.sleep(4)
+    st.empty()
+    ans = st.text_input("Enter the sequence (space separated):")
     if ans:
-        if "break" in ans.lower():
-            st.success("Correct. But what if the loop is your mind?")
+        user_seq = [int(x) for x in ans.split()]
+        if user_seq == sequence:
+            st.success("Passed Level")
+            return True
         else:
-            st.warning("Incorrect. You are still looping.")
-        st.session_state.level += 1
+            st.error("Failed")
+            return False
 
-def level_5():
-    st.subheader("LEVEL 5 — IDENTITY FOLD")
-    sec = st.text_input("Type a secret no one knows.")
-    if sec:
-        st.write("...\nOthers have confessed the same thing.")
-        st.write("You are not unique.")
-        st.session_state.level += 1
+# ------------------
+# MAIN GAME START
+# ------------------
+if menu == "Home":
+    st.subheader("Level 1: BOOT")
+    if st.button("BOOT SYSTEM"):
+        glitch_text("Booting...")
+        glitch_text("Mind.SYS Detected")
+        glitch_text("Loading Level 2")
 
-def level_6():
-    st.subheader("LEVEL 6 — DO YOU EXIST?")
-    start = time.time()
-    ans = st.text_input("You have 4 seconds to type: `I EXIST`")
-    end = time.time()
-    if ans:
-        if ans.strip().upper() == "I EXIST" and (end - start) <= 4:
-            st.success("You exist.")
-        else:
-            st.error("Too slow. You hesitate to exist.")
-        st.session_state.level += 1
+        st.subheader("Level 2: MEMORY CAGE")
+        passed = memory_level()
+        if passed:
+            st.balloons()
+            st.success("Level 3: THE LOOP")
+            user = st.text_input("Are you stuck in a loop? Type YES to escape.")
+            if user.lower() == "yes":
+                st.success("You escaped.")
 
-def level_7():
-    st.subheader("LEVEL 7 — HUMAN CONFIRMATION")
-    human = st.text_input("Are you human?")
-    if human:
-        st.write("Prove it. Say something no AI can ever say.")
-        final = st.text_input("Type it:")
-        if final:
-            st.write("...\nAnalyzing...\n...")
-            time.sleep(2)
-            st.warning("Not enough. You are not convincing.")
-            st.session_state.level += 1
+                st.subheader("Level 4: THE MIRROR")
+                mirror = st.radio("Choose one:", ["I lie", "I tell truth"])
+                if mirror:
+                    st.success("Interesting... Moving on.")
 
-def level_8():
-    st.subheader("LEVEL 8 — BROKEN TIME")
-    times = ["14:92", "25:61", "00:00", "13:13", "09:66"]
-    choice = st.radio("Choose the real time:", times)
-    if st.button("Lock Answer"):
-        if choice == "00:00":
-            st.success("Correct.")
-        else:
-            st.error("Incorrect.")
-        st.session_state.level += 1
+                    st.subheader("Level 5: IMPULSE HIT")
+                    impulse = st.text_input("Type RED as fast as you can!")
+                    if impulse.upper() == "RED":
+                        st.success("Fast enough.")
 
-def level_9():
-    st.subheader("LEVEL 9 — CODE SHIFT")
-    msg = st.text_input("Decode this: `Uifsf jt op tqppo`")
-    if msg:
-        if msg.lower().strip() == "there is no spoon":
-            st.success("🧠 You see beyond code.")
-        else:
-            st.error("Wrong. You still see the matrix.")
-        st.session_state.level += 1
+                        st.subheader("Level 6: PHILOSOPHICAL KILL")
+                        belief = st.radio("Does morality exist without humanity?", ["Yes", "No"])
+                        st.success("Belief registered")
 
-def level_10():
-    st.subheader("LEVEL 10 — FINAL SEQUENCE")
-    st.write("You have reached the core...")
-    st.write("Decrypting...")
-    time.sleep(2)
-    st.markdown("<h1 style='color:#e63946;text-align:center;font-size:50px;'>SYSTEM BREACHED</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align:center;'>The mind is no longer yours.</h2>", unsafe_allow_html=True)
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    glitch = random.choice([
-        "⛔🧠💀 SYSTEM FAILURE 💀🧠⛔",
-        "███▓▒░ GLITCH DETECTED ░▒▓███",
-        "⚠️ FRACTURE IN MEMORY ZONE ⚠️",
-        "🔴🔴🔴 FATAL THOUGHT LEAK 🔴🔴🔴",
-        "ERROR: /mind/reality/core.py"
-    ])
-    st.markdown(f"<h3 style='text-align:center;color:red;'>{glitch}</h3>", unsafe_allow_html=True)
-    st.markdown("<hr><center style='color:#aaa'>@ 2O25MIND.LOCK | POWERED BY MAFA</center>", unsafe_allow_html=True)
+                        st.subheader("Level 7: YOUR CORE")
+                        core = st.text_input("Who are you really?")
+                        if core:
+                            st.markdown("### Calculating personality...")
+                            time.sleep(2)
+                            st.markdown("## You are a reflective introvert, hacker-minded, truth-seeker.")
+                            st.markdown("### But nothing is real.")
+                            glitch_text("BREAKING...")
+                            glitch_text("\\\\\\\\\\ SCREEN CRACKED //////////")
 
-# ---------------------------
-# GAME FLOW
-# ---------------------------
-if not st.session_state.started:
-    if st.button("Start Game"):
-        st.session_state.started = True
-else:
-    levels = {
-        1: level_1,
-        2: level_2,
-        3: level_3,
-        4: level_4,
-        5: level_5,
-        6: level_6,
-        7: level_7,
-        8: level_8,
-        9: level_9,
-        10: level_10
-    }
-    current = st.session_state.level
-    if current in levels:
-        levels[current]()
+# ------------------
+# FOOTER
+# ------------------
+st.markdown("""
+    <div class="footer">
+        @ 2025MIND.LOCK | POWERED BY MAFA
+    </div>
+""", unsafe_allow_html=True)
