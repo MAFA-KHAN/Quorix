@@ -19,6 +19,8 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = []
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
+if "results" not in st.session_state:
+    st.session_state.results = {}
 
 # -------------------------------
 # Save Feedback to File
@@ -128,13 +130,27 @@ if st.session_state.current_page == "Feedback":
 # -------------------------------
 # LEVELS 1 to 10
 # -------------------------------
+level_prompts = [
+    "You’re at a party. Do you seek the quiet corner or the loud crowd?",
+    "A loved one is in danger. Save them logically or emotionally?",
+    "You see shifting symbols. Can you guess the missing pattern?",
+    "You're trapped. A clock is ticking. Act now or think it through?",
+    "You just read 10 words. Recall them... now!",
+    "Reality glitches. You see yourself... or do you?",
+    "You must choose between conflicting voices. Who do you trust?",
+    "A desk. Perfectly clean or deliciously messy?",
+    "What defines you more — your thoughts or your actions?",
+    "You feel eyes on you. Are you the observer or the observed?"
+]
+
 def level_page(level_num):
     st.title(f"🧩 Level {level_num}: Mind Trap")
+    st.markdown(f"**Psych Test:** {level_prompts[level_num - 1]}")
 
+    st.markdown("**Task:** Memorize and input the correct sequence of numbers.")
     if f"sequence_{level_num}" not in st.session_state or st.session_state[f"sequence_{level_num}"] is None:
         st.session_state[f"sequence_{level_num}"] = [random.randint(10, 99) for _ in range(level_num + 2)]
 
-    st.markdown("Memorize this sequence:")
     st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state[f"sequence_{level_num}"])]))
 
     user_seq = st.text_input("Enter the sequence (space separated):", key=f"input_{level_num}")
@@ -145,8 +161,13 @@ def level_page(level_num):
                 st.success("🧠 Correct! Proceeding to next level...")
                 st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
                 st.session_state[f"sequence_{level_num}"] = None
-                st.session_state.current_page = "Explore"
+                st.session_state.results[f"Level {level_num}"] = "Passed"
+                if level_num == 10:
+                    st.session_state.current_page = "Summary"
+                else:
+                    st.session_state.current_page = "Explore"
             else:
+                st.session_state.results[f"Level {level_num}"] = "Failed"
                 st.error("❌ Wrong sequence. Try again.")
         except:
             st.error("❌ Invalid input. Please enter numbers only.")
@@ -155,3 +176,15 @@ def level_page(level_num):
 for i in range(1, 11):
     if st.session_state.current_page == f"Level{i}":
         level_page(i)
+
+# -------------------------------
+# SUMMARY PAGE
+# -------------------------------
+if st.session_state.current_page == "Summary":
+    st.title("🔮 Final Personality Summary")
+    st.markdown("You've reached the end of MIND.LOCK. Here's what your mind revealed:")
+    st.json(st.session_state.results)
+    st.balloons()
+    st.success("You survived the mind trap.")
+    footer()
+)
