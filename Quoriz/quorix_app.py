@@ -1,161 +1,170 @@
 import streamlit as st
+import random
 
-# ------------------------
+# -------------------------------
 # Page Config
-# ------------------------
-st.set_page_config(page_title="MIND.LOCK", layout="centered", initial_sidebar_state="expanded")
+# -------------------------------
+st.set_page_config(page_title="MIND.LOCK", layout="wide")
 
-# ------------------------
-# Session State Init
-# ------------------------
-if "level" not in st.session_state:
-    st.session_state.level = 1
+# -------------------------------
+# Initialize State
+# -------------------------------
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'level' not in st.session_state:
+    st.session_state.level = 0
+if 'username' not in st.session_state:
+    st.session_state.username = ""
+if 'score' not in st.session_state:
+    st.session_state.score = 0
+if 'feedback_list' not in st.session_state:
+    st.session_state.feedback_list = []
 
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "Home"
+# -------------------------------
+# Style + Animations (CSS)
+# -------------------------------
+st.markdown("""
+    <style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: 'Courier New', monospace;
+    }
+    .center-button button {
+        background-color: #e63946;
+        color: white;
+        border-radius: 10px;
+        font-size: 24px;
+        animation: glitch 1s infinite;
+    }
+    @keyframes glitch {
+        0% { transform: skew(-2deg); }
+        20% { transform: skew(2deg); }
+        40% { transform: skew(-1deg); }
+        60% { transform: skew(1deg); }
+        80% { transform: skew(-1deg); }
+        100% { transform: skew(0); }
+    }
+    .footer {
+        position: fixed;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        color: grey;
+        font-size: 14px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# ------------------------
+# -------------------------------
 # Sidebar Navigation
-# ------------------------
-with st.sidebar:
-    st.markdown("## 🧠 MIND.LOCK")
-    nav = st.radio("Navigate", ["Home", "Explore", "About", "Feedback"])
-    if nav:
-        st.session_state.current_page = nav
+# -------------------------------
+st.sidebar.title("☣️ MIND.LOCK")
+nav = st.sidebar.radio("Navigate", ["Home", "Explore", "Feedback", "About"])
 
-# ------------------------
-# Footer
-# ------------------------
-def footer():
-    st.markdown("""<div style='text-align: center; padding: 30px 0; color: gray; font-size: 14px;'>
-    <hr style="border-color:#ff0000;">
-    @ 2025 MIND.LOCK | POWERED BY MAFA
-    </div>""", unsafe_allow_html=True)
+# -------------------------------
+# Home Page
+# -------------------------------
+if nav == "Home":
+    st.title("")
+    st.markdown("<h1 style='text-align: center; color: red;'>MIND.LOCK</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Your Mind Isn’t Safe Anymore...</h3>", unsafe_allow_html=True)
 
-# ------------------------
-# Level Functions
-# ------------------------
-def level_1():
-    st.title("Level 1: DECISION HAZE")
-    st.write("You're standing in a dark alley. Two doors: 🔴 Red or ⚫ Black.")
-    choice = st.radio("Choose a door", ["Red", "Black"])
-    if st.button("Enter"):
-        if choice == "Black":
-            st.success("Correct. You passed Level 1.")
-            st.session_state.level = max(st.session_state.level, 2)
+    with st.container():
+        st.markdown("<div style='text-align:center'>", unsafe_allow_html=True)
+        st.session_state.username = st.text_input("Enter your codename:", key="username")
+        if st.button("Let's Play Game"):
+            st.session_state.page = 'explore'
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# -------------------------------
+# Explore Page
+# -------------------------------
+elif nav == "Explore" or st.session_state.page == 'explore':
+    st.header(f"Welcome, {st.session_state.username}")
+    st.subheader("Choose Your Level")
+
+    levels = ["Level 1: MEMORY CAGE", "Level 2: REACTION CHAOS", "Level 3: PERCEPTION TWIST", "Level 4: CHOICE LOCKDOWN", "Level 5: IDENTITY CRACK"]
+
+    for i, lvl in enumerate(levels):
+        if i <= st.session_state.level:
+            if st.button(lvl):
+                st.session_state.page = f'level{i+1}'
         else:
-            st.error("Wrong door. You failed Level 1.")
+            st.button(f"🔒 {lvl}", disabled=True)
 
-def level_2():
-    st.title("Level 2: MEMORY CAGE")
-    sequence = [20, 96, 83]
+# -------------------------------
+# Levels Logic
+# -------------------------------
+def level1():
+    st.title("🔐 LEVEL 1: MEMORY CAGE")
+    sequence = [random.randint(10, 99) for _ in range(3)]
     st.write("Memorize this sequence:")
-    st.code("[\n0:20\n1:96\n2:83\n]")
+    for idx, val in enumerate(sequence):
+        st.text(f"{idx}:{val}")
+
     user_input = st.text_input("Enter the sequence (space separated):")
-    if st.button("Submit"):
-        if user_input.strip() == "20 96 83":
-            st.success("Correct. You passed Level 2.")
-            st.session_state.level = max(st.session_state.level, 3)
-        else:
-            st.error("Incorrect. You failed Level 2.")
+    if user_input:
+        try:
+            user_sequence = list(map(int, user_input.strip().split()))
+            if user_sequence == sequence:
+                st.success("Correct! Proceeding to next level...")
+                st.session_state.level += 1
+                st.session_state.page = 'explore'
+                st.session_state.score += 10
+            else:
+                st.error("Incorrect! Try again.")
+        except:
+            st.error("Invalid input format.")
 
-def level_3():
-    st.title("Level 3: REACTION SNAP")
-    st.write("You hear a sound. React fast.")
-    if st.button("CLAP"):
-        st.success("Fast reflex! You passed Level 3.")
-        st.session_state.level = max(st.session_state.level, 4)
+def level_placeholder(level_num):
+    st.title(f"🚧 LEVEL {level_num}: COMING SOON")
+    st.write("This level is under construction...")
 
-def level_4():
-    st.title("Level 4: TRUTH VEIL")
-    q = st.radio("You see a stranger drop a wallet. Do you return it?", ["Yes", "No"])
-    if st.button("Decide"):
-        if q == "Yes":
-            st.success("Good conscience. Passed Level 4.")
-            st.session_state.level = max(st.session_state.level, 5)
-        else:
-            st.error("Failed. Try again.")
+if st.session_state.page == 'level1':
+    level1()
+elif st.session_state.page in ['level2', 'level3', 'level4', 'level5']:
+    level_placeholder(st.session_state.page[-1])
 
-def level_5():
-    st.title("Level 5: CORE MIND")
-    q = st.text_area("Who are you, really?")
-    if st.button("Reveal Truth"):
-        st.markdown("### 🤖 Analysis Complete")
-        st.write("You are a deep thinker, possibly introverted, with analytical leanings.")
-        st.markdown("#### Final Verdict: Welcome to your subconscious.")
-        st.markdown("""
-            <div style='color:red; font-size:30px; text-align:center; margin-top:40px;'>
-                ⚠️ SYSTEM OVERLOAD ⚠️<br>
-                <span style='font-family:monospace;'>GL!TCH_0x000F9</span>
-                <br><br>
-                <span style='font-size:50px;'>💥</span>
-            </div>
-        """, unsafe_allow_html=True)
+# -------------------------------
+# Feedback Page
+# -------------------------------
+elif nav == "Feedback":
+    st.header("📝 Feedback")
+    user_feedback = st.text_area("Leave your thoughts or suggestions:")
+    if st.button("Submit Feedback"):
+        if user_feedback:
+            st.session_state.feedback_list.append((st.session_state.username, user_feedback))
+            st.success("Feedback submitted. Thanks!")
 
-# ------------------------
-# Page Content Functions
-# ------------------------
-def home_page():
-    st.markdown("<h1 style='text-align:center; color:white;'>MIND.LOCK</h1>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align:center; color:red;'>Enter Your Subconscious.</h4>", unsafe_allow_html=True)
-    st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-    if st.button("Let's Play Game"):
-        st.session_state.current_page = "Explore"
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.subheader("Previous Feedback")
+    for user, feedback in st.session_state.feedback_list:
+        st.markdown(f"**{user}** said: _{feedback}_")
 
-def explore_page():
-    st.title("🧠 Explore Levels")
-    for i in range(1, 6):
-        if st.session_state.level >= i:
-            if st.button(f"Enter Level {i}"):
-                st.session_state.current_page = f"Level_{i}"
-        else:
-            st.button(f"🔒 Level {i}", disabled=True)
-
-def about_page():
+# -------------------------------
+# About Page
+# -------------------------------
+elif nav == "About":
+    st.title("About MIND.LOCK")
     st.markdown("""
-    ### About MIND.LOCK
-    **MIND.LOCK** is a psychological web game that challenges your inner instincts, memory, decision-making, and ethical reasoning.  
-    Designed with a black-red anime aesthetic, the game progresses through 5 mind-altering levels—each one deeper than the last.
-    
-    🧪 *Built using Python + Streamlit with futuristic UI powered by Gen Z culture.*
+        **MIND.LOCK** is a minimalist psychological puzzle game designed in a Gen Z glitch-core aesthetic.
+        Test your memory, reaction, perception, and identity through 5 escalating levels.
 
-    👩‍💻 Created by: **MAFA**
+        Built with Python + Streamlit, it offers:
+        - Level-wise brain challenges
+        - Score tracking
+        - Dark UI & anime hacker vibe
+        - Feedback system
+
+        👁️ What lies beneath your thoughts?
     """)
 
-def feedback_page():
-    st.markdown("### 💬 Feedback")
-    st.text_area("What did you feel during the game?")
-    st.text_input("Your Email (optional)")
-    st.button("Submit")
+# -------------------------------
+# Footer
+# -------------------------------
+st.markdown("""
+    <div class='footer'>
+        @ 2025MIND.LOCK | POWERED BY MAFA
+    </div>
+""", unsafe_allow_html=True)
 
-# ------------------------
-# Router
-# ------------------------
-def route():
-    if st.session_state.current_page == "Home":
-        home_page()
-    elif st.session_state.current_page == "Explore":
-        explore_page()
-    elif st.session_state.current_page == "About":
-        about_page()
-    elif st.session_state.current_page == "Feedback":
-        feedback_page()
-    elif st.session_state.current_page == "Level_1":
-        level_1()
-    elif st.session_state.current_page == "Level_2":
-        level_2()
-    elif st.session_state.current_page == "Level_3":
-        level_3()
-    elif st.session_state.current_page == "Level_4":
-        level_4()
-    elif st.session_state.current_page == "Level_5":
-        level_5()
-    else:
-        st.write("404 Page Not Found")
-
-# ------------------------
-# App Start
-# ------------------------
-route()
-footer()
