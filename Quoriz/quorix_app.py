@@ -168,4 +168,3 @@ if st.session_state.current_page.startswith("Level"):
         except:
             st.error("❌ Invalid input. Please enter numbers only.")
     footer()
-
