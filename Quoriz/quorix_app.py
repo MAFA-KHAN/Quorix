@@ -21,6 +21,8 @@ if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
 if "results" not in st.session_state:
     st.session_state.results = {}
+if "bg_music" not in st.session_state:
+    st.session_state.bg_music = False
 
 # -------------------------------
 # Save Feedback to File
@@ -48,6 +50,7 @@ if st.sidebar.button("📖 About"):
     st.session_state.current_page = "About"
 if st.sidebar.button("💬 Feedback"):
     st.session_state.current_page = "Feedback"
+st.sidebar.checkbox("🎵 Glitch Music", key="bg_music")
 
 # -------------------------------
 # Footer
@@ -128,51 +131,58 @@ if st.session_state.current_page == "Feedback":
     footer()
 
 # -------------------------------
-# LEVELS 1 to 10
+# LEVEL LOGIC (DIVERSE)
 # -------------------------------
-level_prompts = [
-    "You’re at a party. Do you seek the quiet corner or the loud crowd?",
-    "A loved one is in danger. Save them logically or emotionally?",
-    "You see shifting symbols. Can you guess the missing pattern?",
-    "You're trapped. A clock is ticking. Act now or think it through?",
-    "You just read 10 words. Recall them... now!",
-    "Reality glitches. You see yourself... or do you?",
-    "You must choose between conflicting voices. Who do you trust?",
-    "A desk. Perfectly clean or deliciously messy?",
-    "What defines you more — your thoughts or your actions?",
-    "You feel eyes on you. Are you the observer or the observed?"
-]
-
 def level_page(level_num):
-    st.title(f"🧩 Level {level_num}: Mind Trap")
-    st.markdown(f"**Psych Test:** {level_prompts[level_num - 1]}")
+    st.title(f"🧩 Level {level_num}")
 
-    st.markdown("**Task:** Memorize and input the correct sequence of numbers.")
-    if f"sequence_{level_num}" not in st.session_state or st.session_state[f"sequence_{level_num}"] is None:
-        st.session_state[f"sequence_{level_num}"] = [random.randint(10, 99) for _ in range(level_num + 2)]
+    tasks = {
+        1: ("Introvert vs Extrovert", "Choose your comfort zone:", ["Quiet library", "Loud concert"]),
+        2: ("Logic or Emotion?", "A close friend is in trouble. What do you trust more?", ["Gut feeling", "Careful analysis"]),
+        3: ("Pattern Trap", "Which shape completes the sequence?", ["◼️", "🔺", "⚫", "⬟"]),
+        4: ("Impulse Control", "You found a red button. Do you press it?", ["YES!", "Better wait"]),
+        5: ("Memory Recall", "Memorize this sequence:", [random.randint(10, 99) for _ in range(5)]),
+        6: ("Identity Crisis", "Pick what feels *more you*:", ["Dreamer", "Doer", "Observer"]),
+        7: ("Paranoia Simulation", "You hear whispers. Trust your mind or instincts?", ["Mind", "Instincts"]),
+        8: ("Order vs Chaos", "Your room is:", ["Organized", "Messy chaos"]),
+        9: ("Thought vs Action", "Which defines you more?", ["Thoughts", "Actions"]),
+        10: ("Final Glitch", "Are you the watcher or the watched?", ["Watcher", "Watched"])
+    }
 
-    st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state[f"sequence_{level_num}"])]))
+    title, question, options = tasks[level_num]
+    st.subheader(f"🕶️ {title}")
+    st.markdown(f"**{question}**")
 
-    user_seq = st.text_input("Enter the sequence (space separated):", key=f"input_{level_num}")
-    if st.button("Submit Sequence", key=f"submit_{level_num}"):
-        try:
-            user_values = list(map(int, user_seq.strip().split()))
-            if user_values == st.session_state[f"sequence_{level_num}"]:
-                st.success("🧠 Correct! Proceeding to next level...")
-                st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
-                st.session_state[f"sequence_{level_num}"] = None
-                st.session_state.results[f"Level {level_num}"] = "Passed"
-                if level_num == 10:
-                    st.session_state.current_page = "Summary"
+    if level_num == 5:
+        st.session_state[f"sequence_{level_num}"] = options
+        st.code(" ".join(map(str, options)))
+        user_input = st.text_input("Enter sequence:", key=f"input_{level_num}")
+        if st.button("Submit", key=f"submit_{level_num}"):
+            try:
+                user_seq = list(map(int, user_input.strip().split()))
+                if user_seq == options:
+                    st.success("🧠 Perfect memory!")
+                    st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
+                    st.session_state.results[f"Level {level_num}"] = "Passed"
+                    st.session_state.current_page = "Explore" if level_num < 10 else "Summary"
                 else:
-                    st.session_state.current_page = "Explore"
-            else:
-                st.session_state.results[f"Level {level_num}"] = "Failed"
-                st.error("❌ Wrong sequence. Try again.")
-        except:
-            st.error("❌ Invalid input. Please enter numbers only.")
+                    st.error("Wrong sequence.")
+                    st.session_state.results[f"Level {level_num}"] = "Failed"
+            except:
+                st.error("Please enter valid numbers.")
+    else:
+        choice = st.radio("Select:", options, key=f"radio_{level_num}")
+        if st.button("Lock Choice", key=f"submit_{level_num}"):
+            st.success("Choice recorded.")
+            st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
+            st.session_state.results[f"Level {level_num}"] = choice
+            st.session_state.current_page = "Explore" if level_num < 10 else "Summary"
+
     footer()
 
+# -------------------------------
+# RENDER LEVELS
+# -------------------------------
 for i in range(1, 11):
     if st.session_state.current_page == f"Level{i}":
         level_page(i)
@@ -187,3 +197,4 @@ if st.session_state.current_page == "Summary":
     st.balloons()
     st.success("You survived the mind trap.")
     footer()
+
