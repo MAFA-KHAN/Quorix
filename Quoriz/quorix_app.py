@@ -1,187 +1,158 @@
-# mindlock_app.py
-
 import streamlit as st
 import random
 import time
 
-# ------------------
-# PAGE CONFIG
-# ------------------
-st.set_page_config(
-    page_title="MIND.LOCK",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+# -------------------------
+# CONFIG
+# -------------------------
+st.set_page_config(layout="wide")
 
-# ------------------
-# CUSTOM CSS
-# ------------------
+# -------------------------
+# INIT SESSION STATE
+# -------------------------
+if "level" not in st.session_state:
+    st.session_state.level = 0
+if "passed_levels" not in st.session_state:
+    st.session_state.passed_levels = []
+if "page" not in st.session_state:
+    st.session_state.page = "Home"
+
+# -------------------------
+# GLOBAL STYLES
+# -------------------------
 st.markdown("""
     <style>
-        body {
-            background-color: black;
-        }
-        .main {
-            background-color: black;
-            color: red;
-        }
-        h1, h2, h3, h4, h5, h6, .stText, .stButton > button {
-            color: red;
-        }
-        footer {
-            text-align: center;
-            color: #888;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 0.9em;
-            color: #ff0000;
-        }
-        .center-button {
-            display: flex;
-            justify-content: center;
-            margin-top: 50px;
-        }
+    body { background-color: #000000; color: #ffffff; }
+    .main { background-color: #000000; }
+    .stButton>button { background-color: #e63946; color: white; border-radius: 8px; padding: 0.5em 2em; font-size: 18px; }
+    .stTextInput>div>input { color: white; background-color: #111111; border-radius: 4px; border: 1px solid #e63946; }
+    .stSidebar { background-color: #111111; }
+    .footer { position: fixed; bottom: 0; width: 100%; text-align: center; color: #e63946; font-weight: bold; padding: 5px; }
+    .centered-button { display: flex; justify-content: center; margin-top: 200px; }
+    .header { text-align: center; font-size: 30px; color: #e63946; font-family: 'Courier New', Courier, monospace; margin-top: 40px; }
+    .tagline { text-align: center; font-size: 16px; color: #ffffff; margin-bottom: 40px; }
     </style>
 """, unsafe_allow_html=True)
 
-# ------------------
-# SIDEBAR NAV
-# ------------------
-menu = st.sidebar.radio("Navigate", ["Home", "Explore", "About", "Feedback"])
+# -------------------------
+# SIDEBAR NAVIGATION
+# -------------------------
+st.sidebar.title("MIND.LOCK")
+nav = st.sidebar.radio("Navigate", ["Home", "Explore", "About", "Feedback"])
+st.session_state.page = nav
 
-# ------------------
-# PAGE: HOME
-# ------------------
-if menu == "Home":
-    st.markdown("<h1 style='text-align: center;'>MIND.LOCK</h1>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center;'>Unlock the truth of your subconscious</h4>", unsafe_allow_html=True)
-    
+# -------------------------
+# HEADER (Moved to footer)
+# -------------------------
+
+# -------------------------
+# FOOTER
+# -------------------------
+st.markdown("""
+<div class="footer">@ 2025MIND.LOCK | POWERED BY MAFA</div>
+""", unsafe_allow_html=True)
+
+# -------------------------
+# HOME PAGE
+# -------------------------
+if nav == "Home":
     st.markdown("""
-        <div class="center-button">
-            <form action="#game">
-                <button style="background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none;">Let's Play Game</button>
+        <div class="header">MIND.LOCK</div>
+        <div class="tagline">Face the levels. Unlock the mind.</div>
+        <div class="centered-button">
+            <form action="/">
+                <button type="submit">Let's Play Game</button>
             </form>
         </div>
     """, unsafe_allow_html=True)
+    st.session_state.page = "Explore"
 
-# ------------------
-# PAGE: EXPLORE
-# ------------------
-elif menu == "Explore":
-    st.title("🧠 Psychological Levels in MIND.LOCK")
-    levels = [
-        ("Boot Test", "Your mind boots... but does it obey?"),
-        ("Memory Cage", "Repeat the unseen, recall under pressure."),
-        ("The Loop", "Break the pattern, or live in it."),
-        ("The Mirror", "Do your choices reflect your truth?"),
-        ("Impulse Hit", "React before you think — or fail."),
-        ("The Philosophical Kill", "One wrong belief, and it ends."),
-        ("Your Core", "Final trial — are you real, or code?")
-    ]
-    for title, desc in levels:
-        st.subheader(f"🔻 {title}")
-        st.markdown(f"*{desc}*")
+# -------------------------
+# EXPLORE PAGE
+# -------------------------
+if nav == "Explore":
+    st.title("🧠 Levels Access")
 
-# ------------------
-# PAGE: ABOUT
-# ------------------
-elif menu == "About":
-    st.title("👁️ About MIND.LOCK")
-    st.markdown("""
-    **MIND.LOCK** is a Gen Z anime-inspired psychological test in the form of a dark web simulation.
-    It dives deep into your subconscious through levels that simulate pressure, deception, memory traps, and belief illusions.
+    levels = ["Level 1: Memory Cage", "Level 2: Reaction Lock", "Level 3: Moral Crossroads", "Level 4: Logic Wall", "Level 5: Personality Decode"]
 
-    Built using beginner Python logic, it's not just a game — it's a statement.
-    """)
-
-# ------------------
-# PAGE: FEEDBACK
-# ------------------
-elif menu == "Feedback":
-    st.title("📨 Feedback")
-    name = st.text_input("Your Name")
-    thoughts = st.text_area("What did you think of MIND.LOCK?")
-    if st.button("Submit"):
-        st.success("Feedback submitted. Thank you for playing with your mind.")
-
-# ------------------
-# GAME PAGE SECTION
-# ------------------
-st.markdown("""
-    <div id="game">
-""", unsafe_allow_html=True)
-
-def glitch_text(text):
-    st.markdown(f"<h3 style='color:red;'>{text}</h3>", unsafe_allow_html=True)
-    time.sleep(1)
-
-def memory_level():
-    sequence = [random.randint(10, 99) for _ in range(3)]
-    st.write("Memorize this sequence:", sequence)
-    time.sleep(4)
-    st.empty()
-    ans = st.text_input("Enter the sequence (space separated):")
-    if ans:
-        user_seq = [int(x) for x in ans.split()]
-        if user_seq == sequence:
-            st.success("Passed Level")
-            return True
+    for i, lvl in enumerate(levels):
+        unlocked = (i == 0 or i in st.session_state.passed_levels)
+        if unlocked:
+            if st.button(lvl):
+                st.session_state.level = i + 1
         else:
-            st.error("Failed")
-            return False
+            st.button(f"🔒 {lvl}", disabled=True)
 
-# ------------------
-# MAIN GAME START
-# ------------------
-if menu == "Home":
-    st.subheader("Level 1: BOOT")
-    if st.button("BOOT SYSTEM"):
-        glitch_text("Booting...")
-        glitch_text("Mind.SYS Detected")
-        glitch_text("Loading Level 2")
+# -------------------------
+# LEVEL LOGIC
+# -------------------------
+def run_level(level):
+    st.subheader(levels[level - 1])
 
-        st.subheader("Level 2: MEMORY CAGE")
-        passed = memory_level()
-        if passed:
-            st.balloons()
-            st.success("Level 3: THE LOOP")
-            user = st.text_input("Are you stuck in a loop? Type YES to escape.")
-            if user.lower() == "yes":
-                st.success("You escaped.")
+    if level == 1:
+        st.write("Memorize this sequence:")
+        sequence = [random.randint(10, 99) for _ in range(3)]
+        for idx, val in enumerate(sequence):
+            st.write(f"{idx}:{val}")
 
-                st.subheader("Level 4: THE MIRROR")
-                mirror = st.radio("Choose one:", ["I lie", "I tell truth"])
-                if mirror:
-                    st.success("Interesting... Moving on.")
+        user_input = st.text_input("Enter the sequence (space separated):")
+        correct = " ".join(str(x) for x in sequence)
 
-                    st.subheader("Level 5: IMPULSE HIT")
-                    impulse = st.text_input("Type RED as fast as you can!")
-                    if impulse.upper() == "RED":
-                        st.success("Fast enough.")
+        if user_input:
+            if user_input.strip() == correct:
+                st.success("Correct! Proceeding to next level...")
+                if 1 not in st.session_state.passed_levels:
+                    st.session_state.passed_levels.append(1)
+                st.session_state.level = 2
+                st.experimental_rerun()
+            else:
+                st.error("Incorrect. You failed this level.")
 
-                        st.subheader("Level 6: PHILOSOPHICAL KILL")
-                        belief = st.radio("Does morality exist without humanity?", ["Yes", "No"])
-                        st.success("Belief registered")
+    elif level == 2:
+        st.write("Click the red button as fast as you can!")
+        if st.button("🟥 Click Me!"):
+            reaction_time = random.uniform(0.4, 1.2)
+            if reaction_time < 1.0:
+                st.success("Nice reflexes! Proceeding...")
+                if 2 not in st.session_state.passed_levels:
+                    st.session_state.passed_levels.append(2)
+                st.session_state.level = 3
+                st.experimental_rerun()
+            else:
+                st.error("Too slow!")
 
-                        st.subheader("Level 7: YOUR CORE")
-                        core = st.text_input("Who are you really?")
-                        if core:
-                            st.markdown("### Calculating personality...")
-                            time.sleep(2)
-                            st.markdown("## You are a reflective introvert, hacker-minded, truth-seeker.")
-                            st.markdown("### But nothing is real.")
-                            glitch_text("BREAKING...")
-                            glitch_text("\\\\\\\\\\ SCREEN CRACKED //////////")
+    elif level == 3:
+        st.write("A train is heading toward 5 people. Do you pull the lever to redirect it to 1 person?")
+        choice = st.radio("Choose:", ["Pull the lever", "Do nothing"])
+        if st.button("Submit"):
+            st.success(f"You chose: {choice}")
+            if 3 not in st.session_state.passed_levels:
+                st.session_state.passed_levels.append(3)
+            st.session_state.level = 4
+            st.experimental_rerun()
 
-# ------------------
-# FOOTER
-# ------------------
-st.markdown("""
-    <div class="footer">
-        @ 2025MIND.LOCK | POWERED BY MAFA
-    </div>
-""", unsafe_allow_html=True)
+    elif level == 4:
+        st.write("Solve: What is the next number in the sequence: 2, 4, 8, 16, ?")
+        answer = st.text_input("Enter your answer:")
+        if answer:
+            if answer.strip() == "32":
+                st.success("Correct!")
+                if 4 not in st.session_state.passed_levels:
+                    st.session_state.passed_levels.append(4)
+                st.session_state.level = 5
+                st.experimental_rerun()
+            else:
+                st.error("Incorrect!")
+
+    elif level == 5:
+        st.write("You’ve reached the final lock.")
+        st.write("Calculating personality...")
+        time.sleep(2)
+        traits = ["Introvert", "Extrovert", "Deep Thinker", "Empath", "Strategist"]
+        personality = random.choice(traits)
+        st.success(f"Your mind type: {personality}")
+        st.write("**GLITCH: SYSTEM BREACH**")
+        st.markdown("""
+        <div style='color:#e63946; font-size:28px;'>
+        ████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+
