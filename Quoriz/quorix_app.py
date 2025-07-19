@@ -1,157 +1,149 @@
 import streamlit as st
 import random
-import time
+import json
+import os
 
-# ---------------------------
-# Config & Styling
-# ---------------------------
+# -------------------------------
+# App Config
+# -------------------------------
 st.set_page_config(page_title="MIND.LOCK", layout="wide")
 
-st.markdown("""
-    <style>
-    body {
-        background-color: black;
-        color: red;
-    }
-    .centered-button button {
-        display: block;
-        margin: auto;
-        background-color: #e63946;
-        color: white;
-        border-radius: 10px;
-        padding: 1em 2em;
-        font-size: 1.5em;
-        transition: all 0.3s ease;
-    }
-    .glitch-title {
-        font-size: 48px;
-        color: #e63946;
-        text-align: center;
-        animation: glitch 1s infinite;
-    }
-    @keyframes glitch {
-      0% {text-shadow: 2px 2px red;}
-      50% {text-shadow: -2px -2px white;}
-      100% {text-shadow: 2px 2px red;}
-    }
-    footer {
-        text-align: center;
-        margin-top: 4em;
-        color: gray;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# ---------------------------
-# Initialize Session State
-# ---------------------------
+# -------------------------------
+# Initial Session State
+# -------------------------------
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "level" not in st.session_state:
-    st.session_state.level = 1
-if "score" not in st.session_state:
-    st.session_state.score = 0
-if "feedbacks" not in st.session_state:
-    st.session_state.feedbacks = []
+if "level_unlocked" not in st.session_state:
+    st.session_state.level_unlocked = 1
+if "feedback" not in st.session_state:
+    st.session_state.feedback = []
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Home"
 
-# ---------------------------
+# -------------------------------
+# Save Feedback to File
+# -------------------------------
+FEEDBACK_FILE = "feedback.json"
+def load_feedback():
+    if os.path.exists(FEEDBACK_FILE):
+        with open(FEEDBACK_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_feedback():
+    with open(FEEDBACK_FILE, "w") as f:
+        json.dump(st.session_state.feedback, f)
+
+# -------------------------------
 # Sidebar Navigation
-# ---------------------------
-nav = st.sidebar.radio("Navigate", ["Home", "Explore", "About", "Feedback"])
+# -------------------------------
+page = st.sidebar.radio("", ["Home", "Explore", "About", "Feedback"], label_visibility="collapsed")
+st.session_state.current_page = page
 
-# ---------------------------
-# Home Page
-# ---------------------------
-if nav == "Home":
-    st.markdown("<div class='glitch-title'>MIND.LOCK</div>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align:center;'>Decode Your Darkness</h4>", unsafe_allow_html=True)
-    
-    username_input = st.text_input("Enter your codename:")
-    if username_input:
-        st.session_state.username = username_input
+# -------------------------------
+# Footer
+# -------------------------------
+def footer():
+    st.markdown("""
+        <div style='text-align:center; padding:10px; font-size:12px; color:#888;'>
+            @ 2025MIND.LOCK | POWERED BY MAFA
+        </div>
+    """, unsafe_allow_html=True)
 
-    if st.session_state.username:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div class='centered-button'>
-            <form action="/?nav=Explore">
-                <button type="submit">Let's Play Game</button>
+# -------------------------------
+# HOME PAGE
+# -------------------------------
+if page == "Home":
+    st.markdown("""
+        <div style='text-align:center; margin-top:100px;'>
+            <h1 style='color:#e63946; font-family:monospace;'>MIND.LOCK</h1>
+            <h3 style='color:#fff; font-style:italic;'>Unlock the psyche. Or be trapped within.</h3>
+            <form action="/?nav=Explore" method="get">
+                <button style='margin-top:50px; font-size:20px; padding:10px 30px; background:#e63946; color:white; border:none; border-radius:8px; cursor:pointer;'>Let's Play Game</button>
             </form>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+    footer()
 
-# ---------------------------
-# Explore Page (Levels)
-# ---------------------------
-elif nav == "Explore":
-    st.title("Welcome, {}".format(st.session_state.username or "Player"))
-    st.subheader("Levels")
+# -------------------------------
+# EXPLORE PAGE
+# -------------------------------
+el = st.empty()
+el.title("🧠 Levels")
+for i in range(1, 6):
+    col1, col2 = st.columns([0.85, 0.15])
+    if st.session_state.level_unlocked >= i:
+        with col1:
+            st.markdown(f"### 🔓 Level {i}")
+        with col2:
+            if st.button(f"Enter {i}"):
+                st.session_state.current_level = i
+                st.session_state.current_page = f"Level{i}"
+                st.rerun()
+    else:
+        with col1:
+            st.markdown(f"### 🔒 Level {i} (Locked)")
+footer()
 
-    levels = ["Level 1: Memory Cage", "Level 2: Mirror Maze", "Level 3: Fragment Truth", "Level 4: The Core", "Level 5: Identity Leak"]
-
-    for i, lvl in enumerate(levels):
-        if st.session_state.level >= i+1:
-            if st.button(lvl):
-                st.session_state.selected_level = i + 1
-                st.experimental_rerun()
-        else:
-            st.button(lvl, disabled=True)
-
-    # Triggered level logic
-    if "selected_level" in st.session_state:
-        if st.session_state.selected_level == 1:
-            st.header("Level 1: MEMORY CAGE")
-            sequence = [random.randint(10,99) for _ in range(3)]
-            st.write("Memorize this sequence:")
-            st.code("""[
-0:{}
-1:{}
-2:{}
-]""".format(sequence[0], sequence[1], sequence[2]))
-            
-            user_input = st.text_input("Enter the sequence (space separated):")
-            if user_input:
-                expected = "{} {} {}".format(sequence[0], sequence[1], sequence[2])
-                if user_input.strip() == expected:
-                    st.success("✅ Passed! Moving to Level 2")
-                    st.session_state.level = 2
-                    st.session_state.score += 10
-                    del st.session_state.selected_level
-                    st.experimental_rerun()
-                else:
-                    st.error("❌ Failed. Try again.")
-
-# ---------------------------
-# About Page
-# ---------------------------
-elif nav == "About":
-    st.title("About MIND.LOCK")
+# -------------------------------
+# ABOUT PAGE
+# -------------------------------
+if page == "About":
+    st.title("🧬 About MIND.LOCK")
     st.markdown("""
-    **MIND.LOCK** is a Gen Z–inspired, glitch-aesthetic psychological game built in Python.
-    Designed with a black and red theme, each level reveals hidden aspects of your cognition.
+    MIND.LOCK is a psychological maze of levels designed to test the depths of your mind.
 
-    **Tech Stack:** Python, Streamlit, HTML/CSS-injected UI.
+    Inspired by the dark, glitchy aesthetic of anime and hacker themes, this web-based game takes you through memory puzzles, logic traps, and pattern recognition levels.
 
-    **Creator:** MAFA | Built for modern minds 🧠
+    Made for Gen Z by creators who vibe with the digital subconscious. Your mind isn’t ready.
     """)
+    footer()
 
-# ---------------------------
-# Feedback Page
-# ---------------------------
-elif nav == "Feedback":
-    st.title("Give Your Feedback")
-    feedback = st.text_area("What do you think of MIND.LOCK?")
-    if st.button("Submit Feedback"):
-        if feedback:
-            st.session_state.feedbacks.append(feedback)
-            st.success("Thanks for the feedback!")
+# -------------------------------
+# FEEDBACK PAGE
+# -------------------------------
+if page == "Feedback":
+    st.title("💬 Feedback Vault")
+    with st.form("feedback_form"):
+        name = st.text_input("Your Codename")
+        comment = st.text_area("Drop your thoughts...")
+        submitted = st.form_submit_button("Submit Feedback")
+        if submitted and name and comment:
+            st.session_state.feedback.append({"name": name, "comment": comment})
+            save_feedback()
+            st.success("🧨 Feedback received. Your mind is noted.")
+    st.divider()
+    st.subheader("📜 Previous Feedback")
+    for fb in load_feedback():
+        st.markdown(f"**{fb['name']}**: {fb['comment']}")
+    footer()
 
-    st.subheader("Previous Feedback")
-    for i, fb in enumerate(st.session_state.feedbacks):
-        st.markdown(f"**{i+1}.** {fb}")
+# -------------------------------
+# LEVEL 1: MEMORY CAGE
+# -------------------------------
+if st.session_state.current_page.startswith("Level"):
+    level = st.session_state.get("current_level", 1)
+    st.title(f"🧩 Level {level}: Memory Cage")
 
-# ---------------------------
-# Footer
-# ---------------------------
-st.markdown("""<footer>@ 2025MIND.LOCK | POWERED BY MAFA</footer>""", unsafe_allow_html=True)
+    if "sequence" not in st.session_state:
+        st.session_state.sequence = [random.randint(10, 99) for _ in range(3)]
+        st.session_state.user_input = ""
+
+    st.markdown("Memorize this sequence:")
+    st.code("\n".join([f"{i}: {num}" for i, num in enumerate(st.session_state.sequence)]))
+
+    user_seq = st.text_input("Enter the sequence (space separated):")
+    if st.button("Submit Sequence"):
+        try:
+            user_values = list(map(int, user_seq.strip().split()))
+            if user_values == st.session_state.sequence:
+                st.success("🧠 Correct! Proceeding to next level...")
+                st.session_state.level_unlocked = max(st.session_state.level_unlocked, level + 1)
+                st.session_state.sequence = None
+                st.rerun()
+            else:
+                st.error("❌ Wrong sequence. Try again.")
+        except:
+            st.error("❌ Invalid input. Please enter numbers only.")
+    footer()
 
