@@ -153,23 +153,27 @@ def level_page(level_num):
     st.subheader(f"🕶️ {title}")
     st.markdown(f"**{question}**")
 
-    if level_num == 5:
+   if level_num == 5:
+    if f"sequence_{level_num}" not in st.session_state:
         st.session_state[f"sequence_{level_num}"] = options
-        st.code(" ".join(map(str, options)))
-        user_input = st.text_input("Enter sequence:", key=f"input_{level_num}")
-        if st.button("Submit", key=f"submit_{level_num}"):
-            try:
-                user_seq = list(map(int, user_input.strip().split()))
-                if user_seq == options:
-                    st.success("🧠 Perfect memory!")
-                    st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
-                    st.session_state.results[f"Level {level_num}"] = "Passed"
-                    st.session_state.current_page = "Explore" if level_num < 10 else "Summary"
-                else:
-                    st.error("Wrong sequence.")
-                    st.session_state.results[f"Level {level_num}"] = "Failed"
-            except:
-                st.error("Please enter valid numbers.")
+    options = st.session_state[f"sequence_{level_num}"]
+
+    st.code(" ".join(map(str, options)))
+    user_input = st.text_input("Enter sequence:", key=f"input_{level_num}")
+    if st.button("Submit", key=f"submit_{level_num}"):
+        try:
+            user_seq = list(map(int, user_input.strip().split()))
+            if user_seq == options:
+                st.success("🧠 Perfect memory!")
+                st.session_state.level_unlocked = max(st.session_state.level_unlocked, level_num + 1)
+                st.session_state.results[f"Level {level_num}"] = "Passed"
+                st.session_state.current_page = "Explore" if level_num < 10 else "Summary"
+            else:
+                st.error("Wrong sequence.")
+                st.session_state.results[f"Level {level_num}"] = "Failed"
+        except:
+            st.error("Please enter valid numbers.")
+
     else:
         choice = st.radio("Select:", options, key=f"radio_{level_num}")
         if st.button("Lock Choice", key=f"submit_{level_num}"):
